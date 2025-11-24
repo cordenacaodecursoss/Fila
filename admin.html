@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Fila Digital - Atendente</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyALsWVVeElwPGkSHzRm7Vaw-LRDVBCwY3A",
+            authDomain: "fila-atendimento-7b539.firebaseapp.com",
+            projectId: "fila-atendimento-7b539",
+            storageBucket: "fila-atendimento-7b539.firebasestorage.app",
+            messagingSenderId: "377593193558",
+            appId: "1:377593193558:web:5417a6fca8c92087d187f7",
+            measurementId: "G-4DR1G5PZC8"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        document.addEventListener('DOMContentLoaded', ()=>{
+            const corpo = document.getElementById('corpoTabelaFila');
+            const senhasRef = collection(db, "senhas");
+            const filaQuery = query(senhasRef, orderBy('createdAt','asc'));
+            onSnapshot(filaQuery, snapshot => {
+                corpo.innerHTML = '';
+                snapshot.forEach(docRef => {
+                    const s = docRef.data();
+                    const linha = document.createElement('tr');
+                    linha.innerHTML = `
+                        <td>${s.senha}</td>
+                        <td>${s.nome}</td>
+                        <td>${s.curso}</td>
+                        <td>${s.solicitacao}</td>
+                        <td>${s.status}</td>
+                        <td>
+                            <button onclick="alterarStatus('${docRef.id}','chamado')">Chamar</button>
+                            <button onclick="alterarStatus('${docRef.id}','encerrado')">Encerrar</button>
+                            <button onclick="alterarStatus('${docRef.id}','cancelado')">Cancelar</button>
+                        </td>
+                    `;
+                    corpo.appendChild(linha);
+                });
+            });
+
+            // Função global para alterar status
+            window.alterarStatus = async (id, status) => {
+                await updateDoc(doc(db,"senhas",id), {status});
+            };
+        });
+    </script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        table { border-collapse: collapse; width: 100%; margin-top: 2em;}
+        th, td { border: 1px solid #ccc; padding: 8px 12px; }
+    </style>
+</head>
+<body>
+    <h2>Fila de Atendimento (Atendente)</h2>
+    <table id="tabelaFila">
+        <thead>
+            <tr>
+                <th>Senha</th>
+                <th>Nome</th>
+                <th>Curso</th>
+                <th>Solicitação</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="corpoTabelaFila"></tbody>
+    </table>
+</body>
+</html>
