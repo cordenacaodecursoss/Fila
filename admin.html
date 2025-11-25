@@ -1,118 +1,78 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>Painel de Atendimento Interativo</title>
-  <style>
-    /* Mantém o seu CSS original, pois está limpo e responsivo */
-    /* ... (Seu CSS aqui) ... */
-  </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Painel de Atendimento — Coordenação</title>
+  <link rel="stylesheet" href="css/atendente.css" />
 </head>
 <body>
-<div class="painel-container">
-  <div class="panel-block" id="panel-fila">
-    <div class="panel-title">Filas</div>
-    <div class="panel-subtitle">(Clientes Esperando)</div>
-    <span class="panel-quantidade" id="filaQtd"></span>
-    <div class="select-group">
-      <select id="filtroFilaAtendente">
-        <option value="">Todos atendentes</option>
+  <header class="topbar">
+    <div class="brand">Coordenação — Painel de Atendimento</div>
+    <div class="controls">
+      <label>Atendente</label>
+      <select id="atendenteSelect">
+        <option value="">— Selecionar atendente —</option>
         <option>Alisson</option><option>Robson</option><option>Dayanne</option><option>João</option><option>Elber</option>
       </select>
-      <input type="text" id="filtroFilaNome" placeholder="Filtre cliente pelo nome...">
+      <button id="btnLogout" class="btn small">Sair</button>
     </div>
-    <div class="panel-tme" id="filaTME"></div>
-    <div class="clientes-lista" id="filaClientes"></div>
-  </div>
-  <div class="panel-block" id="panel-chamados">
-    <div class="panel-title">Clientes Chamados Hoje</div>
-    <span class="panel-quantidade" id="chamadosQtd"></span>
-    <div class="select-group">
-      <select id="filtroChamadosAtendente">
-        <option value="">Todos atendentes</option>
-        <option>Alisson</option><option>Robson</option><option>Dayanne</option><option>João</option><option>Elber</option>
-      </select>
-      <input type="text" id="filtroChamadosNome" placeholder="Filtre cliente pelo nome...">
-    </div>
-    <div class="panel-tme" id="chamadosTMA"></div>
-    <div class="clientes-lista" id="chamadosClientes"></div>
-  </div>
-</div>
-<script>
-  // Exemplo de dados simulados substitua por integração real depois
-  const clientesFila = [{nome: 'João Silva', senha: 'CR001', horario:'25/11/2025 12:03', atendente:'Alisson'}];
-  const clientesChamados = [
-    {nome: 'Ana Lucia', senha: 'SA18', horario: '24/11 17:33', atendente: 'Robson'},
-    {nome: 'Camily', senha: 'SR503', horario: '24/11 16:40', atendente: 'João'},
-  ];
+  </header>
 
-  function renderPainel({ containerId, dados, nomeQtd, nomeTME, filtroNomeId, filtroAtendId, modo }) {
-    const painelLista = document.getElementById(containerId);
-    const painelQtd = document.getElementById(nomeQtd);
-    const painelTME = document.getElementById(nomeTME);
-    const filtroNome = document.getElementById(filtroNomeId).value.toLowerCase();
-    const filtroAtend = document.getElementById(filtroAtendId).value;
-    painelLista.innerHTML = '';
-    let exibir = dados.filter(cli =>
-      (!filtroNome || cli.nome.toLowerCase().includes(filtroNome)) &&
-      (!filtroAtend || cli.atendente === filtroAtend)
-    );
-    if (exibir.length === 0) {
-      painelLista.innerHTML = '<div class="fila-vazia">Ninguém na fila!</div>';
-    } else {
-      exibir.forEach(cli => {
-        painelLista.innerHTML += `
-          <div class="cliente-card">
-            <div class="cliente-foto">👤</div>
-            <div class="cliente-info">
-              <div class="cliente-nome">${cli.nome}</div>
-              <div class="cliente-detalhe">Senha: ${cli.senha}</div>
-            </div>
-            <div class="cliente-horario">${cli.horario}</div>
-          </div>`;
-      });
-    }
-    painelQtd.textContent = `Quantidade: ${exibir.length}`;
-    painelTME.textContent = modo === 'fila' ? `TME: ${calcTME(exibir)}` : `TMA: ${calcTME(exibir)}`;
-  }
+  <main class="grid">
+    <!-- Coluna 1: fila geral -->
+    <section class="card">
+      <h2>Fila Geral</h2>
+      <p class="muted">Alunos aguardando atendimento (visível a todos)</p>
+      <div class="meta">
+        <div id="filaQtd" class="badge">0</div>
+        <div class="search"><input id="searchFila" placeholder="Pesquisar nome ou senha..."></div>
+      </div>
+      <div id="filaList" class="list"></div>
+    </section>
 
-  // Exemplo simples: retorna sempre "2m 32s" apenas para visual do painel
-  function calcTME(lista) {
-    return lista.length ? "2m 32s" : "0m";
-  }
+    <!-- Coluna 2: painel do atendente -->
+    <section class="card highlight">
+      <h2>Painel do Atendente</h2>
+      <p class="muted">Mostra somente os alunos do atendente selecionado</p>
 
-  // Eventos
-  ['filtroFilaNome','filtroFilaAtendente'].forEach(id => {
-    document.getElementById(id).addEventListener('input', () =>
-      renderPainel({
-        containerId:'filaClientes',dados:clientesFila,
-        nomeQtd:'filaQtd',nomeTME:'filaTME',
-        filtroNomeId:'filtroFilaNome',filtroAtendId:'filtroFilaAtendente', modo:'fila'
-      })
-    );
-  });
+      <div class="att-info">
+        <div>Atendente: <strong id="attNome">—</strong></div>
+        <div class="small-muted">Status: <span id="attStatus">Offline</span></div>
+      </div>
 
-  ['filtroChamadosNome','filtroChamadosAtendente'].forEach(id => {
-    document.getElementById(id).addEventListener('input', () =>
-      renderPainel({
-        containerId:'chamadosClientes',dados:clientesChamados,
-        nomeQtd:'chamadosQtd',nomeTME:'chamadosTMA',
-        filtroNomeId:'filtroChamadosNome',filtroAtendId:'filtroChamadosAtendente', modo:'chamados'
-      })
-    );
-  });
+      <div class="att-actions">
+        <button id="btnVerMinhaFila" class="btn">Ver minha fila</button>
+        <button id="btnVoltarGeral" class="btn ghost">Voltar</button>
+      </div>
 
-  // Inicializa
-  renderPainel({
-    containerId:'filaClientes',dados:clientesFila,
-    nomeQtd:'filaQtd',nomeTME:'filaTME',
-    filtroNomeId:'filtroFilaNome',filtroAtendId:'filtroFilaAtendente', modo:'fila'
-  });
-  renderPainel({
-    containerId:'chamadosClientes',dados:clientesChamados,
-    nomeQtd:'chamadosQtd',nomeTME:'chamadosTMA',
-    filtroNomeId:'filtroChamadosNome',filtroAtendId:'filtroChamadosAtendente', modo:'chamados'
-  });
-</script>
+      <h3>Em Atendimento</h3>
+      <div id="atendimentoList" class="list small"></div>
+
+      <h3>Minha Fila</h3>
+      <div id="minhaFilaList" class="list"></div>
+
+      <div class="history-note">
+        Ao finalizar um atendimento, o registro vai para o Histórico (visível à direita).
+      </div>
+    </section>
+
+    <!-- Coluna 3: histórico -->
+    <section class="card">
+      <h2>Histórico (Últimos atendimentos)</h2>
+      <p class="muted">Nomes aparecem quando o atendente encerra o atendimento</p>
+      <div class="meta">
+        <div id="histQtd" class="badge">0</div>
+      </div>
+      <div id="historyList" class="list"></div>
+
+      <div class="download">
+        <a href="/mnt/data/historico_21110110 (1).pdf" target="_blank" class="link">Download do histórico enviado</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Firebase + app JS -->
+  <script type="module" src="js/atendente.js"></script>
 </body>
 </html>
